@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # This is the name other services use to talk to this one
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "3001:3001" # [Your Computer Port] : [Inside Docker Port]
+    volumes:
+      - ./services/auth-service:/app # Syncs your code so you don't have to rebuild on every change
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./gateway:/app
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:3001 # Key Learning: Use the service name, not localhost!
+    depends_on:
+      - auth-service
