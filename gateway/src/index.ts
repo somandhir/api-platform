@@ -1,31 +1,38 @@
 import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import cors from 'cors';
+import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import { authMiddleware } from './middleware/auth';
 
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
-app.use(express.json());
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth-service:3001';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://user-service:3002';
 
-const services = {
-  auth: 'http://localhost:3001',
-  users: 'http://localhost:3002',
-  orders: 'http://localhost:3003',
+// Proxy Configuration for Auth (Public)
+const authProxyOptions: Options = {
+    target: AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/api/auth': '' },
 };
 
-app.use('/api/auth',createProxyMiddleware({
-    target: services.auth,
+// private service
+const userProxyOptions: Options = {
+    target: USER_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {'^/api/auth': ''}
-}))
+    pathRewrite: { '^/api/users': '' },
+    on: {
+        proxyReq: (proxyReq, req, res) => {
+            if (req.headers['x-user-id']) {
+                proxyReq.setHeader('x-user-id', req.headers['x-user-id'] as string);
+            }
+        }
+    }
 
-app.use('/api/users', createProxyMiddleware({ 
-  target: services.users, 
-  changeOrigin: true,
-  pathRewrite: { '^/api/users': '' }
-}));
+};
+
+app.use('/api/auth', createProxyMiddleware(authProxyOptions));
+app.use('/api/users', authMiddleware, createProxyMiddleware(userProxyOptions));
 
 app.listen(PORT, () => {
-  console.log(`Gateway running at http://localhost:${PORT}`);
+    console.log(`Gateway listening on port ${PORT}`);
 });

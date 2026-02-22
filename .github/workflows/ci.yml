@@ -1,18 +1,38 @@
-name: CI
+name: CI - API Platform
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  gateway:
+  build-and-test:
     runs-on: ubuntu-latest
 
+    strategy:
+      # This runs the steps below for all three folders at the same time!
+      matrix:
+        service: [gateway, services/auth-service, services/user-service]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
-      - run: npm run build
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './${{ matrix.service }}/package-lock.json'
+
+      - name: Install Dependencies
+        run: |
+          cd ${{ matrix.service }}
+          npm install
+
+      - name: Type Check (TypeScript)
+        run: |
+          cd ${{ matrix.service }}
+          # This checks if your TS code is valid without creating .js files
+          npx tsc --noEmit
