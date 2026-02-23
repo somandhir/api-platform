@@ -1,18 +1,38 @@
 services:
-  auth-service:
-    build: ./services/auth-service
-    ports:
-      - "3001:3001" # [Computer Port] : [Inside Docker Port]
-    volumes:
-      - ./services/auth-service:/app # Syncs 
-
   gateway:
     build: ./gateway
     ports:
       - "3000:3000"
-    volumes:
-      - ./gateway:/app
     environment:
-      - AUTH_SERVICE_URL=http://auth-service:3001 
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - JWT_SECRET=super-secret-key
     depends_on:
+      - redis
       - auth-service
+      - user-service
+
+  auth-service:
+    build: ./services/auth-service
+    volumes:
+      - ./services/auth-service:/app
+    environment:
+      - JWT_SECRET=super-secret-key
+
+  user-service:
+    build: ./services/user-service
+    volumes:
+      - ./services/user-service:/app
+    ports:
+      - "3002:3002" # todo: remove after testing
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # App communication
+      - "15672:15672" # Dashboard UI (Username: guest, Pass: guest)

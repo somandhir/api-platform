@@ -1,6 +1,10 @@
 import express from 'express';
 import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import { authMiddleware } from './middleware/auth';
+import { apiLimiter } from './middleware/rateLimiter';
+import { tokenBucketLimiter } from './middleware/customLimiter';
+import { requestLogger } from './middleware/logging';
+import { cacheMiddleware } from './middleware/cache';
 
 const app = express();
 const PORT = 3000;
@@ -30,8 +34,14 @@ const userProxyOptions: Options = {
 
 };
 
-app.use('/api/auth', createProxyMiddleware(authProxyOptions));
-app.use('/api/users', authMiddleware, createProxyMiddleware(userProxyOptions));
+app.use(requestLogger);
+
+// rate limiting to all requests
+app.use(apiLimiter);
+// app.use(tokenBucketLimiter); // custom
+
+app.use('/api/auth', cacheMiddleware, createProxyMiddleware(authProxyOptions));
+app.use('/api/users', authMiddleware, cacheMiddleware, createProxyMiddleware(userProxyOptions));
 
 app.listen(PORT, () => {
     console.log(`Gateway listening on port ${PORT}`);
