@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# TypeScript output
+dist/
+build/
+*.tsbuildinfo
+out/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+*.c9/
+*.iml
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+
+# Test coverage
+coverage/
+.nyc_output
+htmlcov/
+
+# Docker
+.dockerignore
+
+# Miscellaneous
+.cache/
+.parcel-cache/
+.next/
+.npm/
+.eslintcache
+.node_repl_history
+*.tgz
+*.rar
+dist-ssr/
+.env.production.local
+
+# IDE specific
+*.code-search
+.vscode/settings.json
+.vscode/extensions.json
