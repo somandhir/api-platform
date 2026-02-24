@@ -1,5 +1,9 @@
 # Dependencies
 node_modules/
+gateway/node_modules/
+services/*/node_modules/
+dashboard/node_modules/
+
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
@@ -14,17 +18,27 @@ yarn-error.log*
 .env.development
 .env.test
 .env.production
+.env.example.local
 
 # TypeScript output
 dist/
 build/
 *.tsbuildinfo
 out/
+gateway/dist/
+gateway/build/
+services/*/dist/
+services/*/build/
+dashboard/dist/
+dashboard/build/
 
 # Logs
 logs/
 *.log
 lerna-debug.log*
+gateway/logs/
+services/*/logs/
+dashboard/logs/
 
 # IDE and editor
 .vscode/
@@ -46,14 +60,20 @@ Thumbs.db
 .AppleDouble
 .LSOverride
 ._*
+.Spotlight-V100
+.Trashes
 
 # Test coverage
 coverage/
 .nyc_output
 htmlcov/
+gateway/coverage/
+services/*/coverage/
+dashboard/coverage/
 
 # Docker
 .dockerignore
+.docker/
 
 # Miscellaneous
 .cache/
@@ -71,3 +91,25 @@ dist-ssr/
 *.code-search
 .vscode/settings.json
 .vscode/extensions.json
+.vscode/launch.json
+
+# Runtime artifacts
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Development
+*.swp
+*.swo
+*~
+.tmp/
+temp/
+
+# Node-specific
+.npm/
+.eslintcache
+.node_repl_history
