@@ -11,6 +11,8 @@ services:
       - redis
       - auth-service
       - user-service
+    volumes:
+      - ./gateway:/app
 
   auth-service:
     build: ./services/auth-service
@@ -36,3 +38,8 @@ services:
     ports:
       - "5672:5672"   # App communication
       - "15672:15672" # Dashboard UI (Username: guest, Pass: guest)
+      
+  audit-service:
+    build: ./services/audit-service
+    depends_on:
+      - rabbitmq

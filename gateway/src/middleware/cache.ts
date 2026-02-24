@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from 'redis';
 import { logger } from '../utils/logger';
+import { responseInterceptor } from 'http-proxy-middleware';
 
 const redisClient = createClient({ url: 'redis://redis:6379' });
 redisClient.connect().catch(console.error);
 
 export const cacheMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    //  Only cache GET requests
     if (req.method !== 'GET') return next();
 
     const userId = req.headers['x-user-id'] || 'public';
@@ -16,26 +16,28 @@ export const cacheMiddleware = async (req: Request, res: Response, next: NextFun
         const cachedData = await redisClient.get(key);
 
         if (cachedData) {
-            // CACHE HIT
-            // We manually set the status and send because we're skipping the proxy
+            // SUCCESSFUL HIT
             res.setHeader('X-Cache', 'HIT');
+            // We must use res.send/res.json and NOT call next()
             return res.status(200).json(JSON.parse(cachedData));
         }
 
-        // CACHE MISS
-        // We need to capture the response from the service to cache it
+        // MISS - Attach the key to the request object so the proxy can see it
         res.setHeader('X-Cache', 'MISS');
-        const originalJson = res.json;
-        res.json = (body: any): any => {
-            if (res.statusCode >= 200 && res.statusCode < 300) {
-                redisClient.setEx(key, 60, JSON.stringify(body));
-            }
-            return originalJson.call(res, body);
-        };
-
+        (req as any).cacheKey = key; 
+        
         next();
     } catch (err) {
         logger.error(`Cache Error: ${err}`);
         next();
     }
 };
+
+export const cacheInterceptor = responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
+    const cacheKey = (req as any).cacheKey;
+    if (cacheKey && res.statusCode === 200) {
+        const response = responseBuffer.toString('utf8');
+        await redisClient.setEx(cacheKey, 60, response);
+    }
+    return responseBuffer;
+});
